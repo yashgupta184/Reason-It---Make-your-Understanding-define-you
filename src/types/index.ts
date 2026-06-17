@@ -43,6 +43,11 @@ export interface Answer {
   followUpAnswerText: string
   timeToAnswer: number // milliseconds
   keystrokes: KeystrokeEvent[]
+  consistencyScore?: number
+  keyPointsCovered?: number
+  complexityMismatch?: boolean
+  verdict?: 'likely_genuine' | 'likely_assisted' | 'inconclusive'
+  reasoning?: string
 }
 
 /**

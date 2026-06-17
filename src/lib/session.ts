@@ -129,7 +129,14 @@ export function getAnswer(sessionId: string, questionId: string): Answer | null 
 export function updateAnswerFollowUp(
   sessionId: string,
   questionId: string,
-  followUpAnswerText: string
+  followUpAnswerText: string,
+  analysis?: {
+    consistencyScore: number
+    keyPointsCovered: number
+    complexityMismatch: boolean
+    verdict: 'likely_genuine' | 'likely_assisted' | 'inconclusive'
+    reasoning: string
+  }
 ): Answer | null {
   const session = sessionStore.get(sessionId)
   if (!session) return null
@@ -138,6 +145,13 @@ export function updateAnswerFollowUp(
   if (!answer) return null
 
   answer.followUpAnswerText = followUpAnswerText
+  if (analysis) {
+    answer.consistencyScore = analysis.consistencyScore
+    answer.keyPointsCovered = analysis.keyPointsCovered
+    answer.complexityMismatch = analysis.complexityMismatch
+    answer.verdict = analysis.verdict
+    answer.reasoning = analysis.reasoning
+  }
   sessionStore.set(sessionId, session)
   return answer
 }

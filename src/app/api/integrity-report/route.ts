@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession, completeSession } from '@/lib/session'
-import { computeSessionRiskScore, getSeverityLabel } from '@/lib/scoring'
+import { computeAnswerRiskScore, getSeverityLabel } from '@/lib/scoring'
 import { generateReportNarrative, GeminiError } from '@/lib/gemini'
 import { IntegrityFlag, IntegrityReport } from '@/types'
 
@@ -56,28 +56,63 @@ export async function POST(request: NextRequest) {
 
     console.log(`📊 Generating integrity report for session ${sessionId}...`)
 
-    // Compute overall risk score
-    const { overallScore, scoreBreakdown } = computeSessionRiskScore(session)
+    // Compute overall risk score by averaging combined question risk scores (telemetry + follow-up)
+    let totalCombinedScore = 0
+    const scoredAnswers = session.answers.map(answer => {
+      const { baseScore } = computeAnswerRiskScore(
+        answer.answerText,
+        answer.timeToAnswer,
+        answer.keystrokes
+      )
+
+      let penalty = 0
+      if (
+        answer.verdict === 'likely_assisted' ||
+        (answer.consistencyScore !== undefined && answer.consistencyScore < 60)
+      ) {
+        penalty = 35
+      }
+
+      const combinedScore = Math.min(baseScore + penalty, 100)
+      totalCombinedScore += combinedScore
+
+      return {
+        ...answer,
+        baseScore, // original telemetry score
+        combinedScore,
+      }
+    })
+
+    const overallScore = session.answers.length > 0
+      ? Math.round(totalCombinedScore / session.answers.length)
+      : 0
 
     // Generate integrity flags per question
-    const flags: IntegrityFlag[] = session.answers.map(answer => {
-      // Find the breakdown for this question
-      const breakdown = scoreBreakdown.find(b => b.questionId === answer.questionId)
-      const baseScore = breakdown?.baseScore || 0
-
-      // Determine flag type based on signals
+    const flags: IntegrityFlag[] = scoredAnswers.map(answer => {
+      const telemetryScore = answer.baseScore
       let flagType: 'paste_detected' | 'timing_anomaly' | 'followup_inconsistency' | 'clean' = 'clean'
-      let detail = 'Normal typing patterns. Answer appears genuine.'
+      let detail = 'Normal typing patterns and consistent comprehension. Answer appears genuine.'
       let severity: 'low' | 'medium' | 'high' = 'low'
 
-      // Check for specific signals (simplified — full version would track per-signal)
-      if (baseScore >= 50) {
+      // Check for follow-up inconsistency first (comprehension check takes priority)
+      if (
+        answer.verdict === 'likely_assisted' ||
+        (answer.consistencyScore !== undefined && answer.consistencyScore < 40)
+      ) {
+        flagType = 'followup_inconsistency'
+        detail = `Critical follow-up inconsistency detected. Student explanation contradicts original response (consistency: ${answer.consistencyScore || 0}/100, verdict: likely_assisted).`
+        severity = 'high'
+      } else if (answer.consistencyScore !== undefined && answer.consistencyScore < 60) {
+        flagType = 'followup_inconsistency'
+        detail = `Moderate follow-up inconsistency detected (consistency: ${answer.consistencyScore}/100). Explanation shows weak concept alignment.`
+        severity = 'medium'
+      } else if (telemetryScore >= 50) {
         flagType = 'timing_anomaly'
-        detail = `Typing speed anomaly detected (${baseScore} risk points). Answer typed significantly faster than human capability.`
-        severity = getSeverityLabel(baseScore) as 'low' | 'medium' | 'high'
-      } else if (baseScore >= 20) {
+        detail = `Typing speed anomaly detected (${telemetryScore} risk points). Answer typed significantly faster than human capability.`
+        severity = getSeverityLabel(telemetryScore) as 'low' | 'medium' | 'high'
+      } else if (telemetryScore >= 30) {
         flagType = 'paste_detected'
-        detail = `Potential paste event detected (${baseScore} risk points). Answer may contain copied content.`
+        detail = `Potential paste event detected (${telemetryScore} risk points). Answer contains copied content.`
         severity = 'medium'
       }
 

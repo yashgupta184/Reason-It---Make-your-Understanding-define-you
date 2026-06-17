@@ -186,7 +186,7 @@ export default function ExamPage() {
           sessionId,
           questionId: session.questions[currentQuestionIndex].id,
           originalAnswer: currentAnswer.answerText,
-          followUpAnswer: followUpState.followUpAnswerText,
+          followUpAnswerText: followUpState.followUpAnswerText,
           followUpQuestion: followUpState.followUpQuestion,
           expectedKeyPoints: session.questions[currentQuestionIndex].followUpExpectedKeyPoints,
         }),

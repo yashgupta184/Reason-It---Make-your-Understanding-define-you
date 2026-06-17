@@ -90,8 +90,8 @@ export async function POST(request: NextRequest) {
       question.followUpExpectedKeyPoints
     )
 
-    // Store the follow-up answer
-    updateAnswerFollowUp(sessionId, questionId, followUpAnswerText)
+    // Store the follow-up answer and its analysis
+    updateAnswerFollowUp(sessionId, questionId, followUpAnswerText, analysis)
 
     console.log(`✓ Follow-up analysed (consistency: ${analysis.consistencyScore}, verdict: ${analysis.verdict})`)
 

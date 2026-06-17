@@ -4,15 +4,15 @@
 This implementation plan is the single source of truth. It is designed to prove the project outcome as quickly and reliably as possible while minimizing scope and risk.
 
 ## Phases
-1. Definition and structure
-2. Core engine and data flow
-3. Demo flow and UI
-4. Validation and polish
-5. Deployment readiness
+1. Definition and structure (Completed)
+2. Core engine and data flow (Completed)
+3. Demo flow and UI (Completed)
+4. Validation and polish (Completed)
+5. Deployment readiness (In Progress)
 
 ---
 
-## Phase 1: Definition and structure
+## Phase 1: Definition and structure (Completed)
 ### Goal
 Establish the minimal app structure, shared contracts, and the exact demo flow before writing the main code.
 
@@ -45,7 +45,7 @@ Establish the minimal app structure, shared contracts, and the exact demo flow b
 
 ---
 
-## Phase 2: Core engine and data flow
+## Phase 2: Core engine and data flow (Completed)
 ### Goal
 Build the backend logic that proves question mutation, follow-up probing, and report scoring.
 
@@ -81,7 +81,7 @@ Build the backend logic that proves question mutation, follow-up probing, and re
 
 ---
 
-## Phase 3: Demo flow and UI
+## Phase 3: Demo flow and UI (Completed)
 ### Goal
 Build the three screens that realize the user journey and highlight the core product thesis.
 
@@ -116,7 +116,7 @@ Build the three screens that realize the user journey and highlight the core pro
 
 ---
 
-## Phase 4: Validation and polish
+## Phase 4: Validation and polish (Completed)
 ### Goal
 Make the demo reliable, understandable, and judge-ready.
 
