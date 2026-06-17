@@ -22,7 +22,7 @@ if (!apiKey) {
 }
 
 const client = apiKey ? new GoogleGenerativeAI(apiKey) : null
-const model = client?.getGenerativeModel({ model: 'gemini-pro' })
+const model = client?.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
 /**
  * Error class for Gemini API errors
